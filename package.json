@@ -1,0 +1,33 @@
+{
+  "name": "raw-space",
+  "version": "0.0.1",
+  "description": "A 3D visit to the future raw space",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jdungan/raw-space.git"
+  },
+  "keywords": [
+    "makers",
+    "kickass"
+  ],
+  "author": "JAD",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jdungan/raw-space/issues"
+  },
+  "homepage": "https://github.com/jdungan/raw-space",
+  "dependencies": {
+    "d3": "^3.5.5",
+    "gulp": "3.8.x",
+    "gulp-browserify": "^0.5.1",
+    "gulp-notify": "^2.2.0",
+    "gulp-util": "^3.0.4",
+    "underscore": "*",
+    "vinyl-source-stream": "^1.1.0",
+    "watchify": "^3.1.0"
+  }
+}
