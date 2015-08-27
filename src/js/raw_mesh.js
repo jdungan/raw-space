@@ -1,4 +1,4 @@
-var THREE = require("three.js")
+var THREE = require("three")
 
 var objects = {}
 
@@ -19,16 +19,20 @@ objects.SkyDome = function(size, v) {
 
 
 objects.GroundPlane = function(size, v) {
-  var geometry = new THREE.PlaneBufferGeometry(size, size)
+  
+  
+  
+  var geometry = new THREE.PlaneBufferGeometry(800, 481)
 
-  var groundTexture = THREE.ImageUtils.loadTexture("textures/grasslight-big.jpg");
-  groundTexture.wrapS = groundTexture.wrapT = THREE.RepeatWrapping;
-  groundTexture.repeat.set(size, size);
+  var groundTexture = THREE.ImageUtils.loadTexture("img/large area with points.jpg");
+  groundTexture.minFilter = THREE.NearestFilter
+  // groundTexture.wrapS = groundTexture.wrapT = THREE.RepeatWrapping;
+  // groundTexture.repeat.set(size, size);
   groundTexture.anisotropy = 16;
 
   var material = new THREE.MeshPhongMaterial({
-    color: 0xffffff,
-    specular: 0x111111,
+    // color: 0xffffff,
+    // specular: 0x111111,
     map: groundTexture,
     side: THREE.DoubleSide,
     receiveShadow: true

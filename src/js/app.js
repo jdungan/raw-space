@@ -1,4 +1,12 @@
 
+var _ = require("underscore")
+var THREE = require("three")
+var VRflight = require("./VRflight")
+var FlyControls = require("./FlyControls")
+
+var meshes = require("./raw_mesh")
+var utils = require("./utils")
+
 
 /*
 Listen for keyboard events to enter full-screen VR mode.
@@ -21,6 +29,20 @@ function onkey(event) {
 
 window.addEventListener("keypress", onkey, true);
 
+var container = document.createElement('div');
+var scene = new THREE.Scene();
+// scene.fog = new THREE.Fog(0xcce0ff, 100, 500);
+var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
+var clock = new THREE.Clock();
+var renderer = new THREE.WebGLRenderer();
+
+// var vr_effect = new THREE.VREffect( renderer );
+// vr_effect.setSize( window.innerWidth, window.innerHeight );
+
+
+controls = new THREE.FlyControls(camera);
+controls.movementSpeed = 150;
+controls.domElement = container;
 
 
 function render() {
@@ -38,16 +60,12 @@ function render() {
 
 }
 
-
 function init() {
   
   
   renderer.setSize(window.innerWidth, window.innerHeight);
   document.body.appendChild(renderer.domElement);
 
-  controls = new THREE.VRflight(camera);
-  controls.movementSpeed = 50;
-  controls.domElement = container;
 
   hemiLight = new THREE.HemisphereLight(0x99FFFF, 0xCC0033, 1.5);
   hemiLight.color.setHSL(0.6, 1, 0.6);
@@ -59,44 +77,14 @@ function init() {
 
   scene.add(hemiLight);
 
-  // select counties using fips number for state
-  var counties = coords(20)
-  var state = borders(counties)
-  state.position.z = 5
-  scene.add(state)
+  var center = new THREE.Vector3(0,0,0)
 
-  var center = Centroid(_.flatten(counties))
-
-  pointAt(center)
-
-  // var arrows = HelperArrows(center)
-  //
-  // scene.add(arrows)
-
-
-  // vr_controls = new THREE.VRControls( camera );
+  utils.pointAt(center,camera)
 
   // world sphere
-  scene.add(GroundPlane(1100, center));
-  scene.add(SkyDome(1000, center))
-  scene.add(HellDome(1000, center))
+  scene.add(meshes.GroundPlane(1100, center));
+  scene.add(meshes.SkyDome(1000, center))
 
-
-  _.forEach(wells, function(well) {
-    points = projection([well.lng, well.lat])
-    well.lat = points[1]
-    well.lng = points[0]
-
-    scene.add(WellSite(well))
-
-    scene.add(WellColumn(well))
-
-    scene.add(KellyBushing(well));
-
-    if (well.reservoir.top) {
-      scene.add(Reservoir(well))
-    }
-  })
 
 }
 

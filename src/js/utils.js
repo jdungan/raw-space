@@ -1,7 +1,8 @@
 var _ = require("underscore")
+var THREE = require("three")
 
 
-util = {}
+utils = {}
 
 utils.Centroid = function(v_array) {
   var first = v_array[0]
@@ -35,6 +36,12 @@ utils.Centroid = function(v_array) {
     0
   )
 }
+
+utils.pointAt = function (vector3,camera) {
+  camera.position.set(vector3.x, vector3.y, 50)
+  camera.lookAt(vector3)
+}
+
 
 
 module.exports = utils
