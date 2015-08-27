@@ -11,7 +11,7 @@ var dirs = {
   PROD : './pub'
 }
 
-gulp.task('browser', function() {
+gulp.task('default', function() {
     // Single entry point to browserify 
     gulp.src('src/js/app.js')
         .pipe(browserify({
@@ -19,4 +19,5 @@ gulp.task('browser', function() {
         }))
         .pipe(gulp.dest('./pub/js'))
 });
+
 
