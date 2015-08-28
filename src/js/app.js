@@ -4,7 +4,7 @@ var THREE = require("three")
 var VRflight = require("./VRflight")
 var FlyControls = require("./FlyControls")
 
-var meshes = require("./raw_mesh")
+var raw = require("./raw_mesh")
 var utils = require("./utils")
 
 
@@ -32,7 +32,10 @@ window.addEventListener("keypress", onkey, true);
 var container = document.createElement('div');
 var scene = new THREE.Scene();
 // scene.fog = new THREE.Fog(0xcce0ff, 100, 500);
-var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
+var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+  
+
+
 var clock = new THREE.Clock();
 var renderer = new THREE.WebGLRenderer();
 
@@ -68,9 +71,9 @@ function init() {
 
 
   hemiLight = new THREE.HemisphereLight(0x99FFFF, 0xCC0033, 1.5);
-  hemiLight.color.setHSL(0.6, 1, 0.6);
-  hemiLight.groundColor.setHSL(0.095, 1, 0.75);
-  hemiLight.position.set(0, 0, 2000);
+  hemiLight.color.setHSL(.66, 0, .45);
+  hemiLight.groundColor.setHSL(0, 0, 0);
+  hemiLight.position.set(0, 0, 1000);
   hemiLight.visible = true
   hemiLight.castShadow = true
 
@@ -82,8 +85,9 @@ function init() {
   utils.pointAt(center,camera)
 
   // world sphere
-  scene.add(meshes.GroundPlane(1100, center));
-  scene.add(meshes.SkyDome(1000, center))
+  scene.add(raw.GroundPlane(500, center));
+  // scene.add(raw.SkyDome(250, center))
+  scene.add(raw.Buildings(center))
 
 
 }
