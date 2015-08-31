@@ -1,6 +1,7 @@
 
 var _ = require("underscore")
 var THREE = require("three")
+var TWEEN = require("tween.js")
 var VRflight = require("./VRflight")
 var FlyControls = require("./FlyControls")
 
@@ -48,7 +49,7 @@ controls.movementSpeed = 150;
 controls.domElement = container;
 
 
-function render() {
+function animate() {
 
   requestAnimationFrame(render);
 
@@ -60,6 +61,8 @@ function render() {
   } else {
     renderer.render(scene, camera);
   }
+  
+   TWEEN.update(time);
 
 }
 
@@ -90,6 +93,18 @@ function init() {
   scene.add(raw.Buildings(center))
 
 
+
+  var tween = new TWEEN.Tween(camera.position).to({
+      x: 100,
+      y: 100,
+    z: 500
+  }).easing(TWEEN.Easing.Linear.None).onUpdate(function () {
+      camera.lookAt(center);
+  }).onComplete(function () {
+      camera.lookAt(center);
+  }).start();
+  
+  
 }
 
 
@@ -97,4 +112,5 @@ function init() {
 init()
 
 
-render()
+animate()
+
