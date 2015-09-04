@@ -38,10 +38,8 @@ utils.Centroid = function(v_array) {
 }
 
 utils.pointAt = function (vector3,camera) {
-  camera.position.set(vector3.x, vector3.y, 500)
+  camera.position.set(vector3.x, vector3.y, vector3.z)
   camera.lookAt(vector3)
 }
-
-
 
 module.exports = utils

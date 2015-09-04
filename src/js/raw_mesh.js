@@ -22,11 +22,11 @@ meshes.SkyDome = function(size, v) {
 meshes.GroundPlane = function(size, v) {
   
   var geometry = new THREE.PlaneBufferGeometry(800, 481)
-  var groundTexture = THREE.ImageUtils.loadTexture("img/large area with points.jpg");
+  var groundTexture = THREE.ImageUtils.loadTexture("img/RAW_Property_Low.jpg");
   groundTexture.minFilter = THREE.NearestFilter
   // groundTexture.wrapS = groundTexture.wrapT = THREE.RepeatWrapping;
   // groundTexture.repeat.set(size, size);
-  groundTexture.anisotropy = 16;
+  // groundTexture.anisotropy = 16;
 
   var material = new THREE.MeshPhongMaterial({
     // color: 0xffffff,
@@ -42,20 +42,26 @@ meshes.GroundPlane = function(size, v) {
   return mesh
 }
 
-
-
 meshes.Buildings = function( v ){
   
   var loader = new THREE.JSONLoader();
 
   var bldg = loader.parse(raw_space)
   
+  var scale  = 0.015
+  
   mesh = new THREE.Mesh( bldg.geometry, new THREE.MeshFaceMaterial(bldg.materials)  );
-  mesh.position.set(v.x+75, v.y+220, v.z)
-  mesh.scale.set( .012, .012, .012 );
+  // mesh.position.set(v.x+75, v.y+220, v.z)
   
+  mesh.scale.set( scale, scale, scale );
+  
+  mesh.position.set(v.x-175, v.y+100, v.z)
+
+  
+  // mesh.rotation.z = Math.PI / 2;
+  mesh.rotation.y = Math.PI / 2;
   mesh.rotation.x = Math.PI / 2;
-  
+
   // mesh.overdraw = true;
  
   return mesh
