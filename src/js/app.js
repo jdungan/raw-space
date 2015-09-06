@@ -21,7 +21,13 @@ function onkey(event) {
   }
 };
 
+
+
+
+
 window.addEventListener("keypress", onkey, true);
+
+
 
 
 scene.init()

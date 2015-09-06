@@ -39163,8 +39163,8 @@ THREE.FlyControls = function ( object, domElement ) {
 	window.addEventListener( 'keydown', bind( this, this.keydown ), false );
 	window.addEventListener( 'keyup',   bind( this, this.keyup ), false );
 
-	this.updateMovementVector();
-	this.updateRotationVector();
+	// this.updateMovementVector();
+//   this.updateRotationVector();
 
 };
 
@@ -39191,7 +39191,7 @@ THREE.VRflight = function ( object, domElement, onError ) {
 	// API
 
 	this.movementSpeed = 1.0;
-	this.rollSpeed = 0.005;
+	this.rollSpeed = 1;
 	this.dragToLook = false;
 	this.autoForward = false;
 
@@ -39200,8 +39200,11 @@ THREE.VRflight = function ( object, domElement, onError ) {
   
 	var scope = this;
 	var vrInputs = [];
-	this.moveState = { left: 0, right: 0, forward: 0, back: 0};
+	this.moveState = { up: 0, down: 0, left: 0, right: 0, forward: 0, back: 0, pitchUp: 0, pitchDown: 0, yawLeft: 0, yawRight: 0, rollLeft: 0, rollRight: 0 };
 	this.moveVector = new THREE.Vector3( 0, 0, 0 );
+	this.rotationVector = new THREE.Vector3( 0, 0, 0 );
+  this.tmpQuaternion = new THREE.Quaternion();
+
 
 	function filterInvalidDevices( devices ) {
 
@@ -39228,6 +39231,8 @@ THREE.VRflight = function ( object, domElement, onError ) {
 		}
 
 	}
+
+
 
 	function gotVRDevices( devices ) {
 
@@ -39301,74 +39306,77 @@ THREE.VRflight = function ( object, domElement, onError ) {
 
 	};
 
-  this.spacebardown = false
-  
-  this.worldQ = new THREE.Quaternion()
-  this.startQ = new THREE.Quaternion()
-  this.stopQ = new THREE.Quaternion()
+
+  this.KeyIncrement = function (shiftKey,keyCode, keyState){
+    
+    
+    if (shiftKey) {
+
+      console.log([keyCode,shiftKey])
+      
+      
+  		switch ( keyCode ) {
+
+  			case 38: /*up*/ this.moveState.pitchUp = keyState; break;
+  			case 40: /*down*/ this.moveState.pitchDown = keyState; break;
+
+        // case 37: /*left*/ this.moveState.left = keyState; break;
+        // case 39: /*right*/  this.moveState.right = keyState; break;
+
+  			case 37: /*left*/ this.moveState.yawLeft = keyState; break;
+  			case 39: /*right*/ this.moveState.yawRight = keyState; break;
+
+
+    
+  		}
+    } else {
+
+  		switch ( keyCode ) {
+
+  			case 38: /*up*/ this.moveState.forward = keyState; break;
+  			case 40: /*down*/ this.moveState.back = keyState; break;
+
+  			case 37: /*left*/ this.moveState.yawLeft = keyState; break;
+  			case 39: /*right*/ this.moveState.yawRight = keyState; break;
+
+    
+  		}
+    }
+    
+    
+  }
 
 	this.keydown = function( event ) {
 
-		if ( event.altKey ) {
-
-			return;
-
-		}
-
-		switch ( event.keyCode ) {
-
-			case 38: /*up*/ this.moveState.forward = 1; break;
-			case 40: /*down*/ this.moveState.back = 1; break;
-
-			case 37: /*left*/ this.moveState.left = 1; break;
-			case 39: /*right*/  this.moveState.right = 1; break;
-    
-      case 32:
-        // spacebar
-        this.spacebardown = true
-        this.startQ = object.quaternion.normalize()
-        break;
-		}
-
+    this.KeyIncrement (event.shiftKey,event.keyCode,1)
 		this.updateMovementVector();
+    this.updateRotationVector();
+    
 
 	};
 
 	this.keyup = function( event ) {
 
-		switch ( event.keyCode ) {
-
-			case 38: /*up*/ this.moveState.forward = 0; break;
-			case 40: /*down*/ this.moveState.back = 0; break;
-      
-			case 37: /*left*/ this.moveState.left = 0; break;
-			case 39: /*right*/  this.moveState.right = 0; break;
-      
-      case 32: 
-        //space bar
-        this.spacebardown = false
-        this.stopQ = object.quaternion.normalize()
-        
-        console.log(this.stopQ)
-        
-        this.worldQ.copy(        this.stopQ.inverse().multiply(this.startQ) ).normalize()
-        // this.worldQ.copy(this.stopQ.multiply(this.startQ))
-
-        break
-		}
-
+    this.KeyIncrement (event.shiftKey,event.keyCode,0)
 		this.updateMovementVector();
+    this.updateRotationVector();
 
 	};
 
-  this.update_count = 0
-
 	this.update = function( delta ) {
-    
 		var moveMult = delta * this.movementSpeed;
+		var rotMult = delta * this.rollSpeed;
 
 		this.object.translateX( this.moveVector.x * moveMult );
 		this.object.translateZ( this.moveVector.z * moveMult );
+    
+
+		this.tmpQuaternion.set( this.rotationVector.x * rotMult, this.rotationVector.y * rotMult, this.rotationVector.z * rotMult, 1 ).normalize();
+		this.object.quaternion.multiply( this.tmpQuaternion );
+
+		// expose the rotation vector for convenience
+		this.object.rotation.setFromQuaternion( this.object.quaternion, this.object.rotation.order );
+    
 
 
 		for ( var i = 0; i < vrInputs.length; i ++ ) {
@@ -39427,6 +39435,18 @@ THREE.VRflight = function ( object, domElement, onError ) {
   };
 
 
+	this.updateRotationVector = function() {
+    
+		this.rotationVector.x = ( -this.moveState.pitchDown + this.moveState.pitchUp );
+    this.rotationVector.y = ( -this.moveState.yawRight  + this.moveState.yawLeft );
+    // this.rotationVector.z = ( -this.moveState.rollRight + this.moveState.rollLeft );
+
+    console.log( 'rotate:', [ this.rotationVector.x, this.rotationVector.y, this.rotationVector.z ] );
+
+	};
+
+
+
 	function bind( scope, fn ) {
 
 		return function () {
@@ -39441,10 +39461,6 @@ THREE.VRflight = function ( object, domElement, onError ) {
 
 	window.addEventListener( 'keydown', bind( this, this.keydown ), false );
 	window.addEventListener( 'keyup',   bind( this, this.keyup ), false );
-
-
-
-	this.updateMovementVector();
 
 
 };
@@ -39484,7 +39500,7 @@ scene.init()
 scene.animate()
 
 
-}).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/fake_68084fc7.js","/")
+}).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/fake_60355e55.js","/")
 },{"./scene":13,"buffer":1,"oMfpAn":4}],11:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 module.exports = {
@@ -39648,7 +39664,7 @@ var raw_space = require("./mesh.js")
 
 var meshes = {}
 
-meshes.SkyDome = function(size, v) {
+meshes.Sky = function(size, v) {
 
   var geometry = new THREE.SphereGeometry(size, 16, 16, 0, Math.PI, 0, Math.PI)
 
@@ -39664,7 +39680,7 @@ meshes.SkyDome = function(size, v) {
 }
 
 
-meshes.GroundPlane = function(size, v) {
+meshes.Ground = function(size, v) {
   
   var geometry = new THREE.PlaneBufferGeometry(800, 481)
   var groundTexture = THREE.ImageUtils.loadTexture("img/RAW_Property_Low.jpg");
@@ -39713,12 +39729,24 @@ meshes.Buildings = function( v ){
   
 }
 
+meshes.hemiLight = function (v){
+  
+  var hemiLight = new THREE.HemisphereLight(0x99FFFF, 0xCC0033, 1.5);
+  hemiLight.color.setHSL(.66, 0, .45);
+  hemiLight.groundColor.setHSL(0, 0, 0);
+  hemiLight.position.set(v.x, v.y, v.z);
+  hemiLight.visible = true
+  hemiLight.castShadow = true
+  return hemiLight;
+  
+}
+
+
 module.exports = meshes
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/raw_mesh.js","/")
 },{"./mesh.js":11,"buffer":1,"oMfpAn":4,"three":5}],13:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 
-var _ = require("underscore")
 var THREE = require("three")
 var TWEEN = require("tween.js")
 var VRflight = require("./VRflight")
@@ -39732,7 +39760,7 @@ setting = {}
 container = document.createElement('div');
 var scene = new THREE.Scene();
 // scene.fog = new THREE.Fog(0xcce0ff, 100, 500);
-var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+var camera = new THREE.PerspectiveCamera(75, (window.innerWidth / window.innerHeight), 0.1, 1000);
   
 
 
@@ -39743,7 +39771,10 @@ var renderer = new THREE.WebGLRenderer();
 // vr_effect.setSize( window.innerWidth, window.innerHeight );
 
 
-controls = new THREE.FlyControls(camera);
+controls = new THREE.VRflight(camera);
+// controls = new THREE.FlyControls(camera);
+
+
 controls.movementSpeed = 150;
 controls.domElement = container;
 
@@ -39769,24 +39800,14 @@ setting.init = function () {
   
   document.body.appendChild(renderer.domElement);
 
-
-  hemiLight = new THREE.HemisphereLight(0x99FFFF, 0xCC0033, 1.5);
-  hemiLight.color.setHSL(.66, 0, .45);
-  hemiLight.groundColor.setHSL(0, 0, 0);
-  hemiLight.position.set(0, 0, 1000);
-  hemiLight.visible = true
-  hemiLight.castShadow = true
-
-
-  scene.add(hemiLight);
-
   var center = new THREE.Vector3(0,0,0)
 
   utils.pointAt(center,camera)
 
-  // world sphere
-  scene.add(raw.GroundPlane(1000, center));
-  scene.add(raw.SkyDome(500, center))
+
+  scene.add(raw.hemiLight(new THREE.Vector3(0,0,1000)))
+  scene.add(raw.Ground(1000, center));
+  scene.add(raw.Sky(500, center))
   scene.add(raw.Buildings(new THREE.Vector3(0,0,-1)))
 
   var tween = new TWEEN.Tween(camera.position).to({
@@ -39806,7 +39827,7 @@ setting.init = function () {
 
 module.exports = setting
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/scene.js","/")
-},{"./FlyControls":8,"./VRflight":9,"./raw_mesh":12,"./utils":14,"buffer":1,"oMfpAn":4,"three":5,"tween.js":6,"underscore":7}],14:[function(require,module,exports){
+},{"./FlyControls":8,"./VRflight":9,"./raw_mesh":12,"./utils":14,"buffer":1,"oMfpAn":4,"three":5,"tween.js":6}],14:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 var _ = require("underscore")
 var THREE = require("three")

@@ -18,7 +18,7 @@ THREE.VRflight = function ( object, domElement, onError ) {
 	// API
 
 	this.movementSpeed = 1.0;
-	this.rollSpeed = 0.005;
+	this.rollSpeed = 1;
 	this.dragToLook = false;
 	this.autoForward = false;
 
@@ -27,8 +27,11 @@ THREE.VRflight = function ( object, domElement, onError ) {
   
 	var scope = this;
 	var vrInputs = [];
-	this.moveState = { left: 0, right: 0, forward: 0, back: 0};
+	this.moveState = { up: 0, down: 0, left: 0, right: 0, forward: 0, back: 0, pitchUp: 0, pitchDown: 0, yawLeft: 0, yawRight: 0, rollLeft: 0, rollRight: 0 };
 	this.moveVector = new THREE.Vector3( 0, 0, 0 );
+	this.rotationVector = new THREE.Vector3( 0, 0, 0 );
+  this.tmpQuaternion = new THREE.Quaternion();
+
 
 	function filterInvalidDevices( devices ) {
 
@@ -55,6 +58,8 @@ THREE.VRflight = function ( object, domElement, onError ) {
 		}
 
 	}
+
+
 
 	function gotVRDevices( devices ) {
 
@@ -128,74 +133,77 @@ THREE.VRflight = function ( object, domElement, onError ) {
 
 	};
 
-  this.spacebardown = false
-  
-  this.worldQ = new THREE.Quaternion()
-  this.startQ = new THREE.Quaternion()
-  this.stopQ = new THREE.Quaternion()
+
+  this.KeyIncrement = function (shiftKey,keyCode, keyState){
+    
+    
+    if (shiftKey) {
+
+      console.log([keyCode,shiftKey])
+      
+      
+  		switch ( keyCode ) {
+
+  			case 38: /*up*/ this.moveState.pitchUp = keyState; break;
+  			case 40: /*down*/ this.moveState.pitchDown = keyState; break;
+
+        // case 37: /*left*/ this.moveState.left = keyState; break;
+        // case 39: /*right*/  this.moveState.right = keyState; break;
+
+  			case 37: /*left*/ this.moveState.yawLeft = keyState; break;
+  			case 39: /*right*/ this.moveState.yawRight = keyState; break;
+
+
+    
+  		}
+    } else {
+
+  		switch ( keyCode ) {
+
+  			case 38: /*up*/ this.moveState.forward = keyState; break;
+  			case 40: /*down*/ this.moveState.back = keyState; break;
+
+  			case 37: /*left*/ this.moveState.yawLeft = keyState; break;
+  			case 39: /*right*/ this.moveState.yawRight = keyState; break;
+
+    
+  		}
+    }
+    
+    
+  }
 
 	this.keydown = function( event ) {
 
-		if ( event.altKey ) {
-
-			return;
-
-		}
-
-		switch ( event.keyCode ) {
-
-			case 38: /*up*/ this.moveState.forward = 1; break;
-			case 40: /*down*/ this.moveState.back = 1; break;
-
-			case 37: /*left*/ this.moveState.left = 1; break;
-			case 39: /*right*/  this.moveState.right = 1; break;
-    
-      case 32:
-        // spacebar
-        this.spacebardown = true
-        this.startQ = object.quaternion.normalize()
-        break;
-		}
-
+    this.KeyIncrement (event.shiftKey,event.keyCode,1)
 		this.updateMovementVector();
+    this.updateRotationVector();
+    
 
 	};
 
 	this.keyup = function( event ) {
 
-		switch ( event.keyCode ) {
-
-			case 38: /*up*/ this.moveState.forward = 0; break;
-			case 40: /*down*/ this.moveState.back = 0; break;
-      
-			case 37: /*left*/ this.moveState.left = 0; break;
-			case 39: /*right*/  this.moveState.right = 0; break;
-      
-      case 32: 
-        //space bar
-        this.spacebardown = false
-        this.stopQ = object.quaternion.normalize()
-        
-        console.log(this.stopQ)
-        
-        this.worldQ.copy(        this.stopQ.inverse().multiply(this.startQ) ).normalize()
-        // this.worldQ.copy(this.stopQ.multiply(this.startQ))
-
-        break
-		}
-
+    this.KeyIncrement (event.shiftKey,event.keyCode,0)
 		this.updateMovementVector();
+    this.updateRotationVector();
 
 	};
 
-  this.update_count = 0
-
 	this.update = function( delta ) {
-    
 		var moveMult = delta * this.movementSpeed;
+		var rotMult = delta * this.rollSpeed;
 
 		this.object.translateX( this.moveVector.x * moveMult );
 		this.object.translateZ( this.moveVector.z * moveMult );
+    
+
+		this.tmpQuaternion.set( this.rotationVector.x * rotMult, this.rotationVector.y * rotMult, this.rotationVector.z * rotMult, 1 ).normalize();
+		this.object.quaternion.multiply( this.tmpQuaternion );
+
+		// expose the rotation vector for convenience
+		this.object.rotation.setFromQuaternion( this.object.quaternion, this.object.rotation.order );
+    
 
 
 		for ( var i = 0; i < vrInputs.length; i ++ ) {
@@ -254,6 +262,18 @@ THREE.VRflight = function ( object, domElement, onError ) {
   };
 
 
+	this.updateRotationVector = function() {
+    
+		this.rotationVector.x = ( -this.moveState.pitchDown + this.moveState.pitchUp );
+    this.rotationVector.y = ( -this.moveState.yawRight  + this.moveState.yawLeft );
+    // this.rotationVector.z = ( -this.moveState.rollRight + this.moveState.rollLeft );
+
+    console.log( 'rotate:', [ this.rotationVector.x, this.rotationVector.y, this.rotationVector.z ] );
+
+	};
+
+
+
 	function bind( scope, fn ) {
 
 		return function () {
@@ -268,10 +288,6 @@ THREE.VRflight = function ( object, domElement, onError ) {
 
 	window.addEventListener( 'keydown', bind( this, this.keydown ), false );
 	window.addEventListener( 'keyup',   bind( this, this.keyup ), false );
-
-
-
-	this.updateMovementVector();
 
 
 };

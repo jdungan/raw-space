@@ -268,7 +268,7 @@ THREE.FlyControls = function ( object, domElement ) {
 	window.addEventListener( 'keydown', bind( this, this.keydown ), false );
 	window.addEventListener( 'keyup',   bind( this, this.keyup ), false );
 
-	this.updateMovementVector();
-	this.updateRotationVector();
+	// this.updateMovementVector();
+//   this.updateRotationVector();
 
 };

@@ -3,7 +3,7 @@ var raw_space = require("./mesh.js")
 
 var meshes = {}
 
-meshes.SkyDome = function(size, v) {
+meshes.Sky = function(size, v) {
 
   var geometry = new THREE.SphereGeometry(size, 16, 16, 0, Math.PI, 0, Math.PI)
 
@@ -19,7 +19,7 @@ meshes.SkyDome = function(size, v) {
 }
 
 
-meshes.GroundPlane = function(size, v) {
+meshes.Ground = function(size, v) {
   
   var geometry = new THREE.PlaneBufferGeometry(800, 481)
   var groundTexture = THREE.ImageUtils.loadTexture("img/RAW_Property_Low.jpg");
@@ -67,5 +67,18 @@ meshes.Buildings = function( v ){
   return mesh
   
 }
+
+meshes.hemiLight = function (v){
+  
+  var hemiLight = new THREE.HemisphereLight(0x99FFFF, 0xCC0033, 1.5);
+  hemiLight.color.setHSL(.66, 0, .45);
+  hemiLight.groundColor.setHSL(0, 0, 0);
+  hemiLight.position.set(v.x, v.y, v.z);
+  hemiLight.visible = true
+  hemiLight.castShadow = true
+  return hemiLight;
+  
+}
+
 
 module.exports = meshes
